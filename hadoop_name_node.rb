@@ -109,12 +109,15 @@ def query_public_ip(instances)
   ec2_client = Aws::EC2::Client.new(region: 'ap-southeast-1')
   resp = ec2_client.describe_instances({
       dry_run: false,
-      instance_ids: ids,
-      max_results: 1
+      instance_ids: ids
     })
   ip = resp.reservations[0].instances[0].public_ip_address
-  puts "#{ip}"
+  ip
+end
 
+def print_usage(ip)
+  puts "EC2 Instance Created"
+  puts "You may now connect to it by: ssh -i <path to your private key> ec2-user@#{ip}"
   File.open('env.txt', 'w') do |file|
     file.write ip
   end
@@ -123,5 +126,6 @@ end
 security_group = get_security_group(ec2, security_group_name)
 instances = create_ec2_instance(ec2, security_group)
 tag_instances instances
-query_public_ip instances
+ip_address = query_public_ip instances
+print_usage ip
 
