@@ -127,5 +127,5 @@ security_group = get_security_group(ec2, security_group_name)
 instances = create_ec2_instance(ec2, security_group)
 tag_instances instances
 ip_address = query_public_ip instances
-print_usage ip
+print_usage ip_address
 

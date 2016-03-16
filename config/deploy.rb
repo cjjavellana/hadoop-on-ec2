@@ -34,15 +34,35 @@ set :repo_url, 'git@example.com:me/my_repo.git'
 # Default value for keep_releases is 5
 # set :keep_releases, 5
 
+set :pty, true
+set :ssh_options, {
+  user: 'ec2-user',
+  forward_agent: true,
+  auth_methods: ['publickey'],
+  keys: ["#{ENV['HOME']}/.ssh/christian_mbp15.pem"]
+}
+
 namespace :deploy do
 
-  after :restart, :clear_cache do
-    on roles(:web), in: :groups, limit: 3, wait: 10 do
-      # Here we can do anything such as:
-      # within release_path do
-      #   execute :rake, 'cache:clear'
-      # end
+  task :uptime do
+    on roles(:named_node), in: :parallel do |host|
+      uptime = capture(:uptime)
+      puts "#{host.hostname} reports: #{uptime}"
     end
   end
 
+  task :yum_update do
+    on roles(:named_node), in: :parallel do |host|
+      execute "sudo yum -y update"
+    end
+  end
+
+  task :install_jdk8 do
+    on roles(:named_node), in: :parallel do |host|
+      execute "sudo yum remove -y java-1.7.0-openjdk-1.7.0.95-2.6.4.0.65.amzn1.x86_64"
+      execute "wget --no-check-certificate --no-cookies --header \"Cookie: oraclelicense=accept-securebackup-cookie\" http://download.oracle.com/otn-pub/java/jdk/8u73-b02/jdk-8u73-linux-x64.rpm"
+      execute "sudo rpm -ivh jdk-8u73-linux-x64.rpm"
+      execute "sed -i \"sed '$ a export JAVA_HOME=/usr/java/jdk1.8.0_73' ~/.bashrc\""
+    end
+  end
 end
