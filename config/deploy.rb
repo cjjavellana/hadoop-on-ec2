@@ -62,7 +62,14 @@ namespace :deploy do
       execute "sudo yum remove -y java-1.7.0-openjdk-1.7.0.95-2.6.4.0.65.amzn1.x86_64"
       execute "wget --no-check-certificate --no-cookies --header \"Cookie: oraclelicense=accept-securebackup-cookie\" http://download.oracle.com/otn-pub/java/jdk/8u73-b02/jdk-8u73-linux-x64.rpm"
       execute "sudo rpm -ivh jdk-8u73-linux-x64.rpm"
-      execute "sed -i \"sed '$ a export JAVA_HOME=/usr/java/jdk1.8.0_73' ~/.bashrc\""
+      execute "sed -i '$ a export JAVA_HOME=/usr/java/jdk1.8.0_73' ~/.bashrc"
+    end
+  end
+
+  task :install_hadoop do
+    on roles(:named_node), in: :parallel do |host|
+      execute "sudo useradd hadoop"
+      execute "sudo echo \"hadoop:password\" | sudo chpasswd"
     end
   end
 end

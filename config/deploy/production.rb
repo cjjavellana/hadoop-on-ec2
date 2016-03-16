@@ -21,7 +21,7 @@
 # role :web, %w{user1@primary.com user2@additional.com}, other_property: :other_value
 # role :db,  %w{deploy@example.com}
 
-role :named_node, %w{ 54.255.176.74 }
+role :named_node, %w{ 52.77.244.31 }
 
 
 # Configuration
@@ -38,7 +38,7 @@ role :named_node, %w{ 54.255.176.74 }
 # ==================
 # You may pass any option but keep in mind that net/ssh understands a
 # limited set of options, consult the Net::SSH documentation.
-# http://net-ssh.github.io/net-ssh/classes/Net/SSH.html#method-c-start
+#   
 #
 # Global options
 # --------------
