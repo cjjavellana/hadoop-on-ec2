@@ -26,7 +26,7 @@ def get_security_group(ec2_resource, sec_group_name)
   ).first
 
   unless sec_group
-    sec_group = create_security_group(ec2_resource)
+    sec_group = create_security_group(ec2_resource, sec_group_name)
     create_ingress_rules_for sec_group
   end
 
@@ -37,8 +37,8 @@ def create_security_group(ec2_resource)
   puts "Creating Security Group..."
   security_group = ec2_resource.create_security_group({
     dry_run: false,
-    group_name: 'hadoop-namenode-sc',
-    description: 'The hadoop namenode security group',
+    group_name: sec_group_name,
+    description: sec_group_name,
     vpc_id: 'vpc-b2ab13d7'
   })
   security_group
