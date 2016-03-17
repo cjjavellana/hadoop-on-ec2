@@ -4,13 +4,6 @@ namespace :aws do
   ec2 =  Aws::EC2::Resource.new(region: 'ap-southeast-1')
   private_key_file = "#{ENV['HOME']}/.ssh/christian_mbp15.pem" 
 
-  task :uptime do
-    on roles(:named_node) do |host|
-      uptime = capture(:uptime)
-      puts "#{host.hostname} #{uptime}"
-    end
-  end
-
   # Call this task as
   # cap <stage> aws:check_security_group security_group=<group_name>
   task :check_security_group do
