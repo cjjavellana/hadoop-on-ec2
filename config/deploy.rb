@@ -66,10 +66,16 @@ namespace :deploy do
     end
   end
 
-  task :install_hadoop do
+  task :create_hadoop_user do
     on roles(:named_node), in: :parallel do |host|
       execute "sudo useradd hadoop"
       execute "sudo echo \"hadoop:password\" | sudo chpasswd"
+    end
+  end
+
+  task :install_hadoop do
+    on roles(:named_node), in: :parallel do |host|
+      
     end
   end
 end
