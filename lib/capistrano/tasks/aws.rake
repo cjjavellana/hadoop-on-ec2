@@ -1,6 +1,6 @@
 
 namespace :aws do
-
+  
   ec2 =  Aws::EC2::Resource.new(region: 'ap-southeast-1')
   private_key_file = "#{ENV['HOME']}/.ssh/christian_mbp15.pem" 
 
@@ -12,15 +12,7 @@ namespace :aws do
   #
   task :check_security_group do
     security_group = ENV['security_group']
-    sec_group = ec2.security_groups({
-      filters: [
-        {
-          name: "group-name", 
-          values: [security_group]
-        }
-      ]
-    }
-    ).first
+    sec_group = Ec2Resource.get_security_group(security_group)
 
     unless sec_group.nil?
       puts "Security Group Name: #{security_group}"
@@ -28,14 +20,25 @@ namespace :aws do
     else
       puts "Security Group #{security_group} does not exist"  
     end
-    
+  end
+
+  # Description:
+  # Opens the ports required by hadoop in the given security group
+  #
+  task :open_hadoop_ports do
+
   end
 
   # Description:
   # Creates an ec2 instance based on amazon's AMI
   #
   # Usage:
-  # cap <stage> aws:create_ec2_instance private_ip=10.0.2.xx security_group_id=<security_group_id> instance_type=<t1.micro, m1.small, m1.medium, ... > tag=<instance name>
+  # cap <stage> aws:create_ec2_instance \
+  #     private_ip=10.0.2.xx \
+  #     security_group_id=<security_group_id> \
+  #     instance_type=<t1.micro, m1.small, m1.medium, ... > \
+  #     tag=<instance name> \
+  #     create_public_ip=<true|false>
   #
   # Output:
   # Public IP Address, Instance Id
@@ -44,6 +47,7 @@ namespace :aws do
     instance_type = ENV['instance_type']
     private_ip = ENV['private_ip']
     tag = ENV['tag']
+    create_public_ip = ENV['create_public_ip'].eql?("true")
 
     instances = ec2.create_instances({
       dry_run: false,

@@ -1,0 +1,2 @@
+class SecurityGroup
+end

@@ -45,20 +45,20 @@ set :ssh_options, {
 namespace :deploy do
 
   task :uptime do
-    on roles(:named_node), in: :parallel do |host|
+    on roles(:named_node, :data_node), in: :parallel do |host|
       uptime = capture(:uptime)
       puts "#{host.hostname} reports: #{uptime}"
     end
   end
 
   task :yum_update do
-    on roles(:named_node), in: :parallel do |host|
+    on roles(:named_node, :data_node), in: :parallel do |host|
       execute "sudo yum -y update"
     end
   end
 
   task :install_jdk8 do
-    on roles(:named_node), in: :parallel do |host|
+    on roles(:named_node, :data_node), in: :parallel do |host|
       execute "sudo yum remove -y java-1.7.0-openjdk-1.7.0.95-2.6.4.0.65.amzn1.x86_64"
       execute "wget --no-check-certificate --no-cookies --header \"Cookie: oraclelicense=accept-securebackup-cookie\" http://download.oracle.com/otn-pub/java/jdk/8u73-b02/jdk-8u73-linux-x64.rpm"
       execute "sudo rpm -ivh jdk-8u73-linux-x64.rpm"
@@ -67,7 +67,7 @@ namespace :deploy do
   end
 
   task :create_hadoop_user do
-    on roles(:named_node), in: :parallel do |host|
+    on roles(:named_node, :data_node), in: :parallel do |host|
       execute "sudo useradd hadoop"
       execute "sudo echo \"hadoop:password\" | sudo chpasswd"
     end
@@ -75,7 +75,22 @@ namespace :deploy do
 
   task :install_hadoop do
     on roles(:named_node), in: :parallel do |host|
-      
+      execute ""
+
+    end
+  end
+
+  task :update_host_file do
+    on roles(:named_node, :data_node), in: :parallel do |host|
+      master_node_ip = ENV['master_node']
+      data_nodes_ip = ENV['data_nodes'].split(",")
+
+      counter = 1
+      execute "sudo sed -i '$ a #{master_node_ip} hdp.master.node' /etc/hosts"
+      data_nodes_ip.each do |ip|
+        execute "sudo sed -i '$ a #{ip} hdp.data.node.#{counter}' /etc/hosts"
+        counter += 1
+      end
     end
   end
 end

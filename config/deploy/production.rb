@@ -21,8 +21,8 @@
 # role :web, %w{user1@primary.com user2@additional.com}, other_property: :other_value
 # role :db,  %w{deploy@example.com}
 
-role :named_node, %w{ 52.77.244.31 }
-
+role :named_node, %w{ 54.179.170.108 }
+role :data_node, %w{ 54.255.168.241 54.254.137.40 }
 
 # Configuration
 # =============
