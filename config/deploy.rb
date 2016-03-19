@@ -70,17 +70,27 @@ namespace :deploy do
     on roles(:named_node, :data_node), in: :parallel do |host|
       execute "sudo useradd hadoop"
       execute "sudo echo \"hadoop:password\" | sudo chpasswd"
+      execute "sudo mkdir ~/.ssh && cp /home/ec2-user/.ssh/authorized_keys /home/hadoop/.ssh && chown hadoop:hadoop /home/hadoop/.ssh/authorized_keys"
+      execute "sudo chmod 600 /home/hadoop/.ssh/authorized_keys"
     end
   end
 
-  task :setup_auth do
+  task :setup_auth, :param do |task, args|
     on roles(:named_node) do |host|
       # Upload identity file so that we can ssh from named node to data node
       execute "mkdir -p ~/.ec2"
       upload! "#{ENV['HOME']}/.ssh/christian_mbp15.pem", '/home/ec2-user/.ec2'
+      execute "sudo cp -r /home/ec2-user/.ec2 /home/hadoop"
 
-      # Generate public key
-      execute "cat /dev/zero | ssh-keygen -q -N \"\""
+      # Switch user
+      with_user("hadoop", "password")
+        # Generate public key
+        execute "cat /dev/zero | ssh-keygen -q -N \"\""
+        args[:param]}.split(" ").each do |ip|
+          execute "cat ~/.ssh/id_rsa.pub | ssh -i /home/hadoop/.ec2/christian_mbp15.pem hadoop@#{ip} \"mkdir -p ~/.ssh && cat >>  ~/.ssh/authorized_keys\""
+        end
+      end
+      
     end
   end
 
@@ -108,31 +118,33 @@ namespace :deploy do
     end
   end
 
-  task :update_host_file do
-    on roles(:named_node, :data_node), in: :sequence do |host|
-      master_node_ip = ENV['master_node']
-      data_nodes_ip = ENV['data_nodes'].split(",")
+  # Updates the hostnames of the ec2 instances with the given private ip address
+  # Usage:
+  # cap <stage> "deploy:update_hostnames[private_ip_1=hostname_1 private_ip_2=hostname_2 private_ip_3=hostname_3 ... ]"
+  # 
+  # Example:
+  # cap production "deploy:update_hostnames[10.0.2.51=hdp.master.node 10.0.2.61=hdp.data.node.1 10.0.2.62=hdp.data.node.2]"
+  #
+  task :update_hostnames, :param do |task, args|
+    on roles(:named_node, :data_node), in: :parallel do |host|
 
-      counter = 1
-      execute "sudo sed -i '$ a #{master_node_ip} hdp.master.node' /etc/hosts"
-      
-      data_nodes_ip.each do |ip|
-        execute "sudo sed -i '$ a #{ip} hdp.data.node.#{counter}' /etc/hosts"
-        counter += 1
+      # convert the ip - node name pair to hash
+      map = Hash[args[:param]}.split(" ").map { |x| y=x.split("="); [y[0], y[1]]}]
+      map.each_pair do |ip, hostname|
+        execute "sudo sed -i '$ a #{ip} #{hostname}' /etc/hosts"
       end
 
       internal_ip = capture("curl http://169.254.169.254/latest/meta-data/local-ipv4")
-      case internal_ip
-        when master_node_ip
-          execute "sudo sed -i 's/^HOSTNAME=.*$/HOSTNAME=hdp.master.node/g' /etc/sysconfig/network"
-        when data_nodes_ip[0]
-          execute "sudo sed -i 's/^HOSTNAME=.*$/HOSTNAME=hdp.data.node.1/g' /etc/sysconfig/network"
-        when data_nodes_ip[1]
-          execute "sudo sed -i 's/^HOSTNAME=.*$/HOSTNAME=hdp.data.node.2/g' /etc/sysconfig/network"
+      hostname = map[internal_ip]
+      unless hostname.nil?
+        puts "Updating #{internal_ip} hostname to #{hostname}"
+        execute "sudo sed -i 's/^HOSTNAME=.*$/HOSTNAME=#{hostname}/g' /etc/sysconfig/network"
+      else
+        puts "Unable to find hostname for #{internal_ip}"
       end
     end
   end
 
-  ### TODO
-  ### Update hostnames
+  ### TODO 
+  ### Hadoop configuration
 end
