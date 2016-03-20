@@ -36,22 +36,6 @@ set :repo_url, 'git@example.com:me/my_repo.git'
 
 namespace :deploy do
 
-  def with_user(new_user, new_pass, &block)
-    old_user, old_pass = user, password
-    set :user, new_user
-    set :password, new_pass
-    close_sessions
-    yield
-    set :user, old_user
-    set :password, old_pass
-    close_sessions
-  end
-   
-  def close_sessions
-    sessions.values.each { |session| session.close }
-    sessions.clear
-  end
-
   task :uptime do
     on roles(:named_node, :data_node) do |host|
       uptime = capture(:uptime)
@@ -178,6 +162,4 @@ namespace :deploy do
       execute "sudo reboot 0"
     end
   end
-
-
-  
+end

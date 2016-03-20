@@ -4,7 +4,7 @@
 cap production aws:create_ec2_instance \
 	private_ip=10.0.2.51 \
 	security_group_id=sg-df17ecbb \
-	instance_type=t2.micro \
+	instance_type=t2.medium \
 	tag=hadoop-master-node create_public_ip=true 2>&1 | tee hdp.out
 cap production aws:create_ec2_instance \
 	private_ip=10.0.2.61 \
@@ -37,7 +37,7 @@ cap production deploy:yum_update
 cap production deploy:install_jdk8
 cap production deploy:create_hadoop_user
 cap production_hadoop "deploy:setup_auth[10.0.2.51 10.0.2.61 10.0.2.62]"
-cap --roles=named_node,datanode production deploy:install_hadoop hadoop_config_path=/Users/cjavellana/Projects/dbs/hadoop/ec2/hadoop-config
+cap production deploy:install_hadoop hadoop_config_path=/Users/cjavellana/Projects/dbs/hadoop/ec2/hadoop-config
 cap production "deploy:update_hostnames[10.0.2.51=hdp.master.node 10.0.2.61=hdp.data.node.1 10.0.2.62=hdp.data.node.2]"
 cap production deploy:reboot
 
