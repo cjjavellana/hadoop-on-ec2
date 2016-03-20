@@ -23,4 +23,5 @@ Creates a Hadoop cluster on AWS EC2
 ```
 $ ./create_hdp_cluster.sh
 ```
-8. Enjoy!
+
+Enjoy!
