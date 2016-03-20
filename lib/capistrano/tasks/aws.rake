@@ -2,8 +2,7 @@
 namespace :aws do
   
   ec2 =  Aws::EC2::Resource.new(region: 'ap-southeast-1')
-  private_key_file = "#{ENV['HOME']}/.ssh/christian_mbp15.pem" 
-
+  
   # Description: 
   # Returns true if the given security_group exists, false if otherwise
   #
