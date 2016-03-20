@@ -31,11 +31,13 @@ echo "Master Node IP: $master_ip"
 echo "Data Node IP: $data_nodes_ip"
 
 sed -i "" -e "s/master_node_ip/${master_ip}/g" -e "s/data_node_ip/${data_nodes_ip}/g" config/deploy/production.rb
+sed -i "" -e "s/master_node_ip/${master_ip}/g" -e "s/data_node_ip/${data_nodes_ip}/g" config/deploy/production_hadoop.rb
 
 cap production deploy:yum_update
 cap production deploy:install_jdk8
 cap production deploy:create_hadoop_user
-cap production deploy:setup_auth
-cap production deploy:install_hadoop
+cap production_hadoop "deploy:setup_auth[10.0.2.51 10.0.2.61 10.0.2.62]"
+cap --roles=named_node,datanode production deploy:install_hadoop hadoop_config_path=/Users/cjavellana/Projects/dbs/hadoop/ec2/hadoop-config
 cap production "deploy:update_hostnames[10.0.2.51=hdp.master.node 10.0.2.61=hdp.data.node.1 10.0.2.62=hdp.data.node.2]"
+cap production deploy:reboot
 

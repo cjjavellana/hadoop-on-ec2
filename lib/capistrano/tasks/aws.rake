@@ -22,6 +22,20 @@ namespace :aws do
     end
   end
 
+  task :uptime do
+    on roles(:named_node, :data_node) do |host|
+      uptime = capture(:uptime)
+      puts "#{host.hostname} reports: #{uptime}"
+    end
+  end
+
+  task :hadoop_uptime do
+    on roles(:hadoop_master) do |host|
+      uptime = capture(:uptime)
+      puts "#{host.hostname} reports: #{uptime}"
+    end
+  end
+
   # Description:
   # Opens the ports required by hadoop in the given security group
   #
