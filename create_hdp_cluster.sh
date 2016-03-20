@@ -22,6 +22,10 @@ sed -i "" \
 	-e 's/^role \:named_node.*$/role \:named_node, \%w\{master_node_ip\}/g' \
 	-e 's/^role \:data_node.*$/role \:data_node, \%w\{data_node_ip\}/g' \
 	config/deploy/production.rb
+sed -i "" \
+	-e 's/^role \:named_node.*$/role \:named_node, \%w\{master_node_ip\}/g' \
+	-e 's/^role \:data_node.*$/role \:data_node, \%w\{data_node_ip\}/g' \
+	config/deploy/production_hadoop.rb
 
 # Update config/deploy/production.rb
 master_ip=$(grep "hadoop-master-node" hdp.out | awk '{print $8}' | tr '\n' ' ' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//') 
