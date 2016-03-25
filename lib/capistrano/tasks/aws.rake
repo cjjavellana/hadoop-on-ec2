@@ -2,7 +2,8 @@
 namespace :aws do
   
   ec2 =  Aws::EC2::Resource.new(region: 'ap-southeast-1')
-  
+  hadoop_cluster_nodenames = ['hadoop-master-node', 'hadoop-data-node-1', 'hadoop-data-node-2']
+
   # Description: 
   # Returns true if the given security_group exists, false if otherwise
   #
@@ -114,4 +115,76 @@ namespace :aws do
 
     puts "Tag: #{tag} Instance Id: #{ids}; Public Ip: #{ip}"
   end
+
+  task :reboot_hadoop_cluster do
+    instances = Ec2Resource.get_instances_by_tagnames(hadoop_cluster_nodenames)
+    instances.each do |instance|
+      instance.reboot
+    end
+  end
+
+  task :stop_hadoop_cluster do
+    instances = Ec2Resource.get_instances_by_tagnames(hadoop_cluster_nodenames)
+
+    instances.each do |instance|
+      state = instance.state.name
+      if state.eql?("running")
+        puts "Shutting down #{instance.id}."
+        instance.stop
+        instance.wait_until_stopped
+        puts "Instance #{instance.id} stopped"
+      else
+        puts "#{instance.id} is already #{state}. Doing nothing."
+      end
+    end
+  end
+
+  task :start_hadoop_cluster do
+    instances = Ec2Resource.get_instances_by_tagnames(hadoop_cluster_nodenames)
+    
+
+    instances.each do |instance|
+      state = instance.state.name
+      if state.eql?("stopped")
+        puts "Starting #{instance.id}."
+        instance.start
+        instance.wait_until_running
+      else
+        puts "#{instance.id} is #{state}. Doing nothing."
+      end
+    end
+  end
+
+  task :update_conf_ip_addresses do
+    instances = Ec2Resource.get_instances_by_tagnames(hadoop_cluster_nodenames)
+
+    datanodes_ip = []
+    instances.each do |instance|
+      state = instance.state.name
+      if state.eql?("running")
+        puts "Instance #{instance.id} Started. Public IP: #{instance.public_ip_address}"
+        puts "Updating deploy configurations..."
+
+        tag = instance.tags[0]
+
+        if tag.value.eql?("hadoop-master-node")
+
+          script = "s/^role \\:named_node.*$/role \\:named_node, \\%w\\{#{instance.public_ip_address}\\}/g"
+          puts script
+
+          system "sed", "-i", "", "-e", script, "config/deploy/production.rb"
+          system "sed", "-i", "", "-e", script, "config/deploy/production_hadoop.rb"
+        else 
+          datanodes_ip.push(instance.public_ip_address)
+        end
+      end
+    end
+
+    script = "s/^role \\:data_node.*$/role \\:data_node, \\%w\\{#{datanodes_ip.join(",")}\\}/g"
+    puts script
+
+    system "sed", "-i", "", "-e", script, "config/deploy/production.rb"
+    system "sed", "-i", "", "-e", script, "config/deploy/production_hadoop.rb"
+  end
+
 end

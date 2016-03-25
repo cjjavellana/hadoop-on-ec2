@@ -162,4 +162,3 @@ namespace :deploy do
       execute "sudo reboot 0"
     end
   end
-end

@@ -62,4 +62,21 @@ class Ec2Resource
     end
   end
   
+  # Returns {@code Instance} identified by the given tagnames
+  # 
+  # @tagnames - An array of tagnames. e.g. ['instance_1', 'instance_2']
+  #  
+  def self.get_instances_by_tagnames(tagnames)
+    instances = @@ec2.instances({
+        filters: [
+          {
+            name: 'tag-value',
+            values: tagnames
+          }
+        ]
+      })
+
+    return instances
+  end
+
 end

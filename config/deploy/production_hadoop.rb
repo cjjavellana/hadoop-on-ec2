@@ -1,5 +1,5 @@
-role :named_node, %w{52.77.214.121}
-role :data_node, %w{54.169.204.166 54.255.183.190}
+role :named_node, %w{54.169.220.221}
+role :data_node, %w{52.77.243.253,52.77.240.79}
 
 set :pty, true
 set :ssh_options, {
