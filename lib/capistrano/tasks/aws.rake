@@ -117,14 +117,14 @@ namespace :aws do
   end
 
   task :reboot_hadoop_cluster do
-    instances = Ec2Resource.get_instances_by_tagnames(hadoop_cluster_nodenames)
+    instances = Ec2Resource.instances_by_tagnames(hadoop_cluster_nodenames)
     instances.each do |instance|
       instance.reboot
     end
   end
 
   task :stop_hadoop_cluster do
-    instances = Ec2Resource.get_instances_by_tagnames(hadoop_cluster_nodenames)
+    instances = Ec2Resource.instances_by_tagnames(hadoop_cluster_nodenames)
 
     instances.each do |instance|
       state = instance.state.name
@@ -140,9 +140,8 @@ namespace :aws do
   end
 
   task :start_hadoop_cluster do
-    instances = Ec2Resource.get_instances_by_tagnames(hadoop_cluster_nodenames)
+    instances = Ec2Resource.instances_by_tagnames(hadoop_cluster_nodenames)
     
-
     instances.each do |instance|
       state = instance.state.name
       if state.eql?("stopped")
@@ -156,7 +155,7 @@ namespace :aws do
   end
 
   task :update_conf_ip_addresses do
-    instances = Ec2Resource.get_instances_by_tagnames(hadoop_cluster_nodenames)
+    instances = Ec2Resource.instances_by_tagnames(hadoop_cluster_nodenames)
 
     datanodes_ip = []
     instances.each do |instance|
@@ -166,14 +165,13 @@ namespace :aws do
         puts "Updating deploy configurations..."
 
         tag = instance.tags[0]
-
         if tag.value.eql?("hadoop-master-node")
-
           script = "s/^role \\:named_node.*$/role \\:named_node, \\%w\\{#{instance.public_ip_address}\\}/g"
-          puts script
-
+          
           system "sed", "-i", "", "-e", script, "config/deploy/production.rb"
           system "sed", "-i", "", "-e", script, "config/deploy/production_hadoop.rb"
+
+          puts "Master node configurations updated!"
         else 
           datanodes_ip.push(instance.public_ip_address)
         end
@@ -181,10 +179,11 @@ namespace :aws do
     end
 
     script = "s/^role \\:data_node.*$/role \\:data_node, \\%w\\{#{datanodes_ip.join(",")}\\}/g"
-    puts script
-
+    
     system "sed", "-i", "", "-e", script, "config/deploy/production.rb"
     system "sed", "-i", "", "-e", script, "config/deploy/production_hadoop.rb"
+
+    puts "Datanodes node configurations updated!"
   end
 
 end

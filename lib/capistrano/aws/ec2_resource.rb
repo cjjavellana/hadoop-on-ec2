@@ -66,7 +66,7 @@ class Ec2Resource
   # 
   # @tagnames - An array of tagnames. e.g. ['instance_1', 'instance_2']
   #  
-  def self.get_instances_by_tagnames(tagnames)
+  def self.instances_by_tagnames(tagnames)
     instances = @@ec2.instances({
         filters: [
           {
